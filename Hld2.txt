@@ -1,0 +1,68 @@
+flowchart TD
+    Client["Client\n(Web / Mobile app)"]
+
+    Gateway["API Gateway\n(Routing, auth filter, load balance)"]
+    Eureka["Eureka\n(Service registry)"]
+
+    %% Client and Gateway Routing
+    Client -->|HTTPS + JWT| Gateway
+    Gateway -.-> Eureka
+
+    %% Grouping Microservices forces horizontal alignment
+    subgraph Services ["Microservices Layer"]
+        UserSvc["User service"]
+        JobSvc["Job service"]
+        AppSvc["Application service"]
+        InterviewSvc["Interview service"]
+        NotifSvc["Notification service"]
+    end
+
+    %% Gateway to Services
+    Gateway ===> UserSvc
+    Gateway ===> JobSvc
+    Gateway ===> AppSvc
+    Gateway ===> InterviewSvc
+    Gateway ===> NotifSvc
+
+    %% Service Discovery
+    UserSvc -.-> Eureka
+    JobSvc -.-> Eureka
+    AppSvc -.-> Eureka
+    InterviewSvc -.-> Eureka
+    NotifSvc -.-> Eureka
+
+    %% Feign Client Sync Calls
+    AppSvc -.->|FeignClient| JobSvc
+    AppSvc -.->|FeignClient| InterviewSvc
+
+    %% Message Broker
+    RabbitMQ{"RabbitMQ\n(Async message broker)"}
+    
+    UserSvc --> RabbitMQ
+    JobSvc --> RabbitMQ
+    AppSvc --> RabbitMQ
+    InterviewSvc --> RabbitMQ
+    RabbitMQ -->|event| NotifSvc
+
+    %% Grouping Databases forces horizontal alignment
+    subgraph Databases ["Data Layer"]
+        UserDB[("User DB\n(MySQL)")]
+        JobDB[("Job DB\n(MySQL)")]
+        AppDB[("App DB\n(MySQL)")]
+        InterviewDB[("Interview DB\n(MySQL)")]
+        NotifDB[("Notif DB\n(MySQL)")]
+    end
+
+    %% Database Connections
+    UserSvc --> UserDB
+    JobSvc --> JobDB
+    AppSvc --> AppDB
+    InterviewSvc --> InterviewDB
+    NotifSvc --> NotifDB
+
+    %% External and Cache
+    Redis[("Redis\n(Job cache)")]
+    SMTP["SMTP\n(Email provider)"]
+
+    JobSvc -.-> Redis
+    NotifSvc --> SMTP
