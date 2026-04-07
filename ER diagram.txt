@@ -1,0 +1,200 @@
+Creating ER Diagrams
+--------------------
+erDiagram
+    USER {
+        uuid user_id PK
+        string full_name
+        string email
+        string password_hash
+        string phone
+        enum role
+        enum account_status
+        string profile_picture_url
+        timestamp last_login_at
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    CANDIDATE_PROFILE {
+        uuid candidate_id PK
+        uuid user_id FK
+        int total_experience_months
+        string current_company
+        decimal current_ctc
+        decimal expected_ctc
+        int notice_period_days
+        string resume_url
+        text skills_summary
+        string linkedin_url
+        string github_url
+        enum availability_status
+        timestamp updated_at
+    }
+
+    EMPLOYEE_PROFILE {
+        uuid employee_id PK
+        uuid user_id FK
+        string employee_code
+        string department
+        string designation
+        date joining_date
+        enum employment_status
+        timestamp updated_at
+    }
+
+    RECRUITER_PROFILE {
+        uuid recruiter_id PK
+        uuid user_id FK
+        string company_name
+        string department
+        string designation
+        string company_website
+        timestamp updated_at
+    }
+
+    JOB_CATEGORY {
+        uuid category_id PK
+        string name
+        string description
+    }
+
+    JOB {
+        uuid job_id PK
+        uuid recruiter_id FK
+        uuid category_id FK
+        string title
+        text description
+        string location
+        boolean is_remote
+        enum employment_type
+        int experience_min_months
+        int experience_max_months
+        decimal salary_min
+        decimal salary_max
+        string currency
+        enum status
+        int max_applications
+        timestamp created_at
+        timestamp updated_at
+        date closing_date
+    }
+
+    JOB_SKILL {
+        uuid job_skill_id PK
+        uuid job_id FK
+        string skill_name
+        enum skill_level
+        boolean is_mandatory
+    }
+
+    APPLICATION {
+        uuid application_id PK
+        uuid job_id FK
+        uuid candidate_id FK
+        uuid referral_id FK
+        timestamp applied_at
+        enum application_status
+        enum source_type
+        string resume_snapshot_url
+        string cover_letter_url
+        timestamp updated_at
+    }
+
+    REFERRAL {
+        uuid referral_id PK
+        uuid employee_id FK
+        uuid candidate_id FK
+        uuid job_id FK
+        enum referral_status
+        string referral_note
+        timestamp referred_at
+        timestamp updated_at
+    }
+
+    INTERVIEW_ROUND {
+        uuid interview_round_id PK
+        uuid application_id FK
+        uuid scheduled_by_user_id FK
+        uuid interviewer_user_id FK
+        string round_name
+        enum round_type
+        int round_number
+        timestamp scheduled_at
+        int duration_minutes
+        enum mode
+        string meeting_link
+        enum status
+        string cancellation_reason
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    INTERVIEW_FEEDBACK {
+        uuid feedback_id PK
+        uuid interview_round_id FK
+        uuid interviewer_user_id FK
+        int rating
+        text strengths
+        text weaknesses
+        text comments
+        enum recommendation
+        boolean is_submitted
+        timestamp submitted_at
+    }
+
+    SELECTION_DECISION {
+        uuid decision_id PK
+        uuid application_id FK
+        uuid decided_by_user_id FK
+        enum final_status
+        text decision_note
+        string offer_letter_url
+        decimal offered_ctc
+        date expected_joining_date
+        timestamp decided_at
+    }
+
+    NOTIFICATION {
+        uuid notification_id PK
+        uuid user_id FK
+        string event_type
+        string reference_id
+        string reference_type
+        enum channel
+        string subject
+        text message
+        enum delivery_status
+        boolean is_read
+        timestamp read_at
+        timestamp created_at
+        timestamp sent_at
+    }
+
+    USER ||--o| CANDIDATE_PROFILE : "has profile"
+    USER ||--o| EMPLOYEE_PROFILE : "has profile"
+    USER ||--o| RECRUITER_PROFILE : "has profile"
+    USER ||--o{ NOTIFICATION : "receives"
+    USER ||--o{ INTERVIEW_ROUND : "schedules"
+    USER ||--o{ INTERVIEW_ROUND : "interviews in"
+    USER ||--o{ INTERVIEW_FEEDBACK : "submits"
+    USER ||--o{ SELECTION_DECISION : "decides"
+
+    JOB_CATEGORY ||--o{ JOB : "classifies"
+
+    RECRUITER_PROFILE ||--o{ JOB : "posts"
+
+    JOB ||--o{ JOB_SKILL : "requires"
+    JOB ||--o{ APPLICATION : "receives"
+    JOB ||--o{ REFERRAL : "targets"
+
+    CANDIDATE_PROFILE ||--o{ APPLICATION : "submits"
+    CANDIDATE_PROFILE ||--o{ REFERRAL : "is referred via"
+
+    EMPLOYEE_PROFILE ||--o{ REFERRAL : "makes"
+
+    REFERRAL |o--o| APPLICATION : "may lead to"
+
+    APPLICATION ||--o{ INTERVIEW_ROUND : "has"
+    APPLICATION ||--o| SELECTION_DECISION : "has"
+
+    INTERVIEW_ROUND ||--o{ INTERVIEW_FEEDBACK : "receives"
